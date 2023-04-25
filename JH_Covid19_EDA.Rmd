@@ -8,6 +8,7 @@ output:
 ---
 
 ## Setup
+***
 
 Note, before using knitr please install all missing packages from the code cell below into your environment. 
 
@@ -27,23 +28,15 @@ In short, the US data was collected from individual state and county Departments
 
 #### Feature Descriptions from Source
 
-**FIPS:** US only. Federal Information Processing Standards code that uniquely identifies counties within the USA.
-
-**Admin2:** County name. US only.
-
-**Province_State:** Province, state or dependency name.
-
-**Country_Region:** Country, region or sovereignty name. The names of locations included on the Website correspond with the official designations used by the U.S. Department of State.
-
-**Lat and Long_:** Dot locations on the dashboard. All points (except for Australia) shown on the map are based on geographic centroids, and are not representative of a specific address, building or any location at a spatial scale finer than a province/state. Australian dots are located at the centroid of the largest city in each state.
-
-**Cases:** Counts include confirmed and probable (where reported).
-
-**Deaths:** Counts include confirmed and probable (where reported).
-
-**UID:** Unique Identifier for each row entry.
-
-**ISO3:** Officially assigned country code identifiers.
+- **FIPS:** US only. Federal Information Processing Standards code that uniquely identifies counties within the USA.
+- **Admin2:** County name. US only.
+- **Province_State:** Province, state or dependency name.
+- **Country_Region:** Country, region or sovereignty name. The names of locations included on the Website correspond with the official designations used by the U.S. Department of State.
+- **Lat and Long_:** Dot locations on the dashboard. All points (except for Australia) shown on the map are based on geographic centroids, and are not representative of a specific address, building or any location at a spatial scale finer than a province/state. Australian dots are located at the centroid of the largest city in each state.
+- **Cases:** Counts include confirmed and probable (where reported).
+- **Deaths:** Counts include confirmed and probable (where reported).
+- **UID:** Unique Identifier for each row entry.
+- **ISO3:** Officially assigned country code identifiers.
 
 ### Environment Setup
 
@@ -68,6 +61,9 @@ global_deaths <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master
 ```
 
 ## Initial Look at the Data
+***
+
+Let's look at the data in its raw form to decide what to do with it.
 
 ```{r First Look}
 dim(us_cases)
@@ -79,12 +75,13 @@ head(us_deaths[1:14])
 head(global_deaths[1:6])
 ```
 
-I'm slicing the output so we don't see the date columns as they will fill the screen.
+*I'm slicing the output so we don't see the date columns as they will fill the screen.*
 Here we can see each date is in an individual column **(feature)**, also `us_deaths` has an extra feature named `Population`.
 
 Also, interesting to see reporting started on January, 22, 2020.
 
 ## Clean / Transformation Stage
+***
 
 To clean up these datasets we will do the following,
 
@@ -152,6 +149,8 @@ head(us_data)
 
 This will be much easier to work with.
 
+### Cleaning US Datasets
+
 Now let's do a similar procedure with the global data.
 
 ```{r Cleaning Global Data}
@@ -163,7 +162,7 @@ global_deaths <- global_deaths %>%
         values_to = 'Deaths') %>%
     # Rename some features
     rename(., Province_State = 'Province.State',
-        County_Region = 'Country.Region')
+        Country_Region = 'Country.Region')
 
 # Global_Cases transformations
 global_cases <- global_cases %>%
@@ -173,7 +172,7 @@ global_cases <- global_cases %>%
         values_to = 'Cases') %>%
     # Rename some features
     rename(., Province_State = 'Province.State',
-        County_Region = 'Country.Region')
+        Country_Region = 'Country.Region')
 
 # Merge into one dataframe
 global_data <- full_join(global_cases, global_deaths)
@@ -183,16 +182,28 @@ global_data$Date <- gsub('X', '', as.character(global_data$Date))
 global_data <- global_data %>%
     mutate(Date = mdy(Date))
 
-# Change character classes into factors
-global_data <- global_data %>%
-        mutate(across(where(is.character), as.factor))
-
 # Display changes
 head(global_data)
 ```
 
-This looks great too. Now let's get that population data and add it to each country in `global_data`.
+Now because we might be interested in making some per capita comparisons in the future, let's import population data and add it to each country in `global_data`.
 
 ```{r Import Population to Global}
+# Import Table with Populations
+UID_Table <- read.csv('https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/UID_ISO_FIPS_LookUp_Table.csv')
+head(UID_Table)
+# Merge population in using left_join
+global_data <- global_data %>%
+    left_join(UID_Table, by = c('Province_State', 'Country_Region', 'Lat')) %>%
+    select(-c(UID, iso2, iso3, code3, FIPS, Admin2, Combined_Key, Long_))
 
+# Change character classes into factors
+global_data <- global_data %>%
+        mutate(across(where(is.character), as.factor))
+```
+
+Finally, we should take a look at a summary of our two datasets and see if we can make any high level conclusions.
+```{r Summary}
+summary(us_data)
+summary(global_data)
 ```

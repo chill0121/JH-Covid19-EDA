@@ -359,6 +359,7 @@ display: none;
 
 <div id="setup" class="section level2">
 <h2>Setup</h2>
+<hr />
 <p>Note, before using knitr please install all missing packages from the
 code cell below into your environment.</p>
 <p>Also, I recommended knitting into HTML as it has been optimized for
@@ -385,26 +386,28 @@ of its Center for Systems Science in Engineering. Copyright Johns
 Hopkins University 2020.</em></p>
 <div id="feature-descriptions-from-source" class="section level4">
 <h4>Feature Descriptions from Source</h4>
-<p><strong>FIPS:</strong> US only. Federal Information Processing
-Standards code that uniquely identifies counties within the USA.</p>
-<p><strong>Admin2:</strong> County name. US only.</p>
-<p><strong>Province_State:</strong> Province, state or dependency
-name.</p>
-<p><strong>Country_Region:</strong> Country, region or sovereignty name.
-The names of locations included on the Website correspond with the
-official designations used by the U.S. Department of State.</p>
-<p><strong>Lat and Long_:</strong> Dot locations on the dashboard. All
+<ul>
+<li><strong>FIPS:</strong> US only. Federal Information Processing
+Standards code that uniquely identifies counties within the USA.</li>
+<li><strong>Admin2:</strong> County name. US only.</li>
+<li><strong>Province_State:</strong> Province, state or dependency
+name.</li>
+<li><strong>Country_Region:</strong> Country, region or sovereignty
+name. The names of locations included on the Website correspond with the
+official designations used by the U.S. Department of State.</li>
+<li><strong>Lat and Long_:</strong> Dot locations on the dashboard. All
 points (except for Australia) shown on the map are based on geographic
 centroids, and are not representative of a specific address, building or
 any location at a spatial scale finer than a province/state. Australian
-dots are located at the centroid of the largest city in each state.</p>
-<p><strong>Cases:</strong> Counts include confirmed and probable (where
-reported).</p>
-<p><strong>Deaths:</strong> Counts include confirmed and probable (where
-reported).</p>
-<p><strong>UID:</strong> Unique Identifier for each row entry.</p>
-<p><strong>ISO3:</strong> Officially assigned country code
-identifiers.</p>
+dots are located at the centroid of the largest city in each state.</li>
+<li><strong>Cases:</strong> Counts include confirmed and probable (where
+reported).</li>
+<li><strong>Deaths:</strong> Counts include confirmed and probable
+(where reported).</li>
+<li><strong>UID:</strong> Unique Identifier for each row entry.</li>
+<li><strong>ISO3:</strong> Officially assigned country code
+identifiers.</li>
+</ul>
 </div>
 </div>
 <div id="environment-setup" class="section level3">
@@ -447,6 +450,9 @@ global_deaths &lt;- read.csv(&quot;https://github.com/CSSEGISandData/COVID-19/ra
 </div>
 <div id="initial-look-at-the-data" class="section level2">
 <h2>Initial Look at the Data</h2>
+<hr />
+<p>Let’s look at the data in its raw form to decide what to do with
+it.</p>
 <pre class="r"><code>dim(us_cases)</code></pre>
 <pre><code>## [1] 3342 1154</code></pre>
 <pre class="r"><code>dim(us_deaths)</code></pre>
@@ -470,21 +476,23 @@ global_deaths &lt;- read.csv(&quot;https://github.com/CSSEGISandData/COVID-19/ra
 ## 4 -87.12511    Bibb, Alabama, US      22394        0        0
 ## 5 -86.56791  Blount, Alabama, US      57826        0        0
 ## 6 -85.71266 Bullock, Alabama, US      10101        0        0</code></pre>
-<pre class="r"><code>head(global_deaths[1:5])</code></pre>
-<pre><code>##   Province.State Country.Region       Lat     Long X1.22.20
-## 1                   Afghanistan  33.93911 67.70995        0
-## 2                       Albania  41.15330 20.16830        0
-## 3                       Algeria  28.03390  1.65960        0
-## 4                       Andorra  42.50630  1.52180        0
-## 5                        Angola -11.20270 17.87390        0
-## 6                    Antarctica -71.94990 23.34700        0</code></pre>
-<p>I’m slicing the output so we don’t see the date columns as they will
-fill the screen. Here we can see each date is in an individual column
-<strong>(feature)</strong>, also <code>us_deaths</code> has an extra
-feature named <code>Population</code>.</p>
+<pre class="r"><code>head(global_deaths[1:6])</code></pre>
+<pre><code>##   Province.State Country.Region       Lat     Long X1.22.20 X1.23.20
+## 1                   Afghanistan  33.93911 67.70995        0        0
+## 2                       Albania  41.15330 20.16830        0        0
+## 3                       Algeria  28.03390  1.65960        0        0
+## 4                       Andorra  42.50630  1.52180        0        0
+## 5                        Angola -11.20270 17.87390        0        0
+## 6                    Antarctica -71.94990 23.34700        0        0</code></pre>
+<p><em>I’m slicing the output so we don’t see the date columns as they
+will fill the screen.</em> Here we can see each date is in an individual
+column <strong>(feature)</strong>, also <code>us_deaths</code> has an
+extra feature named <code>Population</code>.</p>
+<p>Also, interesting to see reporting started on January, 22, 2020.</p>
 </div>
 <div id="clean-transformation-stage" class="section level2">
 <h2>Clean / Transformation Stage</h2>
+<hr />
 <p>To clean up these datasets we will do the following,</p>
 <p>US Data:</p>
 <ul>
@@ -557,6 +565,11 @@ head(us_data)</code></pre>
 ## 5 84001001 Autauga Alabama        US              32.5 -86.6 2020-01-26     0
 ## 6 84001001 Autauga Alabama        US              32.5 -86.6 2020-01-27     0
 ## # ℹ 2 more variables: Population &lt;int&gt;, Deaths &lt;int&gt;</code></pre>
+<p>This will be much easier to work with.</p>
+</div>
+<div id="cleaning-us-datasets-1" class="section level3">
+<h3>Cleaning US Datasets</h3>
+<p>Now let’s do a similar procedure with the global data.</p>
 <pre class="r"><code># Global_deaths transformations
 global_deaths &lt;- global_deaths %&gt;%
     # Pivot all the date columns
@@ -565,7 +578,7 @@ global_deaths &lt;- global_deaths %&gt;%
         values_to = &#39;Deaths&#39;) %&gt;%
     # Rename some features
     rename(., Province_State = &#39;Province.State&#39;,
-        County_Region = &#39;Country.Region&#39;)
+        Country_Region = &#39;Country.Region&#39;)
 
 # Global_Cases transformations
 global_cases &lt;- global_cases %&gt;%
@@ -575,31 +588,107 @@ global_cases &lt;- global_cases %&gt;%
         values_to = &#39;Cases&#39;) %&gt;%
     # Rename some features
     rename(., Province_State = &#39;Province.State&#39;,
-        County_Region = &#39;Country.Region&#39;)
+        Country_Region = &#39;Country.Region&#39;)
 
 # Merge into one dataframe
 global_data &lt;- full_join(global_cases, global_deaths)</code></pre>
-<pre><code>## Joining with `by = join_by(Province_State, County_Region, Lat, Long, Date)`</code></pre>
+<pre><code>## Joining with `by = join_by(Province_State, Country_Region, Lat, Long, Date)`</code></pre>
 <pre class="r"><code># Remove the X in the dates and mutate to Date class
 global_data$Date &lt;- gsub(&#39;X&#39;, &#39;&#39;, as.character(global_data$Date))
 global_data &lt;- global_data %&gt;%
     mutate(Date = mdy(Date))
 
-# Change character classes into factors
-global_data &lt;- global_data %&gt;%
-        mutate(across(where(is.character), as.factor))
-
 # Display changes
 head(global_data)</code></pre>
 <pre><code>## # A tibble: 6 × 7
-##   Province_State County_Region   Lat  Long Date       Cases Deaths
-##   &lt;fct&gt;          &lt;fct&gt;         &lt;dbl&gt; &lt;dbl&gt; &lt;date&gt;     &lt;int&gt;  &lt;int&gt;
-## 1 &quot;&quot;             Afghanistan    33.9  67.7 2020-01-22     0      0
-## 2 &quot;&quot;             Afghanistan    33.9  67.7 2020-01-23     0      0
-## 3 &quot;&quot;             Afghanistan    33.9  67.7 2020-01-24     0      0
-## 4 &quot;&quot;             Afghanistan    33.9  67.7 2020-01-25     0      0
-## 5 &quot;&quot;             Afghanistan    33.9  67.7 2020-01-26     0      0
-## 6 &quot;&quot;             Afghanistan    33.9  67.7 2020-01-27     0      0</code></pre>
+##   Province_State Country_Region   Lat  Long Date       Cases Deaths
+##   &lt;chr&gt;          &lt;chr&gt;          &lt;dbl&gt; &lt;dbl&gt; &lt;date&gt;     &lt;int&gt;  &lt;int&gt;
+## 1 &quot;&quot;             Afghanistan     33.9  67.7 2020-01-22     0      0
+## 2 &quot;&quot;             Afghanistan     33.9  67.7 2020-01-23     0      0
+## 3 &quot;&quot;             Afghanistan     33.9  67.7 2020-01-24     0      0
+## 4 &quot;&quot;             Afghanistan     33.9  67.7 2020-01-25     0      0
+## 5 &quot;&quot;             Afghanistan     33.9  67.7 2020-01-26     0      0
+## 6 &quot;&quot;             Afghanistan     33.9  67.7 2020-01-27     0      0</code></pre>
+<p>Now because we might be interested in making some per capita
+comparisons in the future, let’s import population data and add it to
+each country in <code>global_data</code>.</p>
+<pre class="r"><code># Import Table with Populations
+UID_Table &lt;- read.csv(&#39;https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/UID_ISO_FIPS_LookUp_Table.csv&#39;)
+head(UID_Table)</code></pre>
+<pre><code>##   UID iso2 iso3 code3 FIPS Admin2 Province_State Country_Region       Lat
+## 1   4   AF  AFG     4   NA                          Afghanistan  33.93911
+## 2   8   AL  ALB     8   NA                              Albania  41.15330
+## 3  10   AQ  ATA    10   NA                           Antarctica -71.94990
+## 4  12   DZ  DZA    12   NA                              Algeria  28.03390
+## 5  20   AD  AND    20   NA                              Andorra  42.50630
+## 6  24   AO  AGO    24   NA                               Angola -11.20270
+##      Long_ Combined_Key Population
+## 1 67.70995  Afghanistan   38928341
+## 2 20.16830      Albania    2877800
+## 3 23.34700   Antarctica         NA
+## 4  1.65960      Algeria   43851043
+## 5  1.52180      Andorra      77265
+## 6 17.87390       Angola   32866268</code></pre>
+<pre class="r"><code># Merge population in using left_join
+global_data &lt;- global_data %&gt;%
+    left_join(UID_Table, by = c(&#39;Province_State&#39;, &#39;Country_Region&#39;, &#39;Lat&#39;)) %&gt;%
+    select(-c(UID, iso2, iso3, code3, FIPS, Admin2, Combined_Key, Long_))
+
+# Change character classes into factors
+global_data &lt;- global_data %&gt;%
+        mutate(across(where(is.character), as.factor))</code></pre>
+<p>Finally, we should take a look at a summary of our two datasets and
+see if we can make any high level conclusions.</p>
+<pre class="r"><code>summary(us_data)</code></pre>
+<pre><code>##        UID                 County         Province_State    Country_Region
+##  16      :   1143   Unassigned:  59436   Texas   : 292608   US:3819906    
+##  316     :   1143   Washington:  35433   Georgia : 184023                 
+##  580     :   1143   Jefferson :  29718   Virginia: 154305                 
+##  850     :   1143   Franklin  :  28575   Kentucky: 139446                 
+##  63072001:   1143   Jackson   :  27432   Missouri: 134874                 
+##  63072003:   1143   Lincoln   :  27432   Kansas  : 122301                 
+##  (Other) :3813048   (Other)   :3611880   (Other) :2792349                 
+##       Lat              Long              Date                Cases        
+##  Min.   :-14.27   Min.   :-174.16   Min.   :2020-01-22   Min.   :  -3073  
+##  1st Qu.: 33.90   1st Qu.: -97.81   1st Qu.:2020-11-02   1st Qu.:    330  
+##  Median : 38.01   Median : -89.49   Median :2021-08-15   Median :   2272  
+##  Mean   : 36.72   Mean   : -88.64   Mean   :2021-08-15   Mean   :  14088  
+##  3rd Qu.: 41.58   3rd Qu.: -82.31   3rd Qu.:2022-05-28   3rd Qu.:   8159  
+##  Max.   : 69.31   Max.   : 145.67   Max.   :2023-03-09   Max.   :3710586  
+##                                                                           
+##    Population           Deaths       
+##  Min.   :       0   Min.   :  -82.0  
+##  1st Qu.:    9917   1st Qu.:    4.0  
+##  Median :   24892   Median :   37.0  
+##  Mean   :   99604   Mean   :  186.9  
+##  3rd Qu.:   64979   3rd Qu.:  122.0  
+##  Max.   :10039107   Max.   :35545.0  
+## </code></pre>
+<pre class="r"><code>summary(global_data)</code></pre>
+<pre><code>##                       Province_State          Country_Region  
+##                              :226314   China         : 38862  
+##  Alberta                     :  1143   Canada        : 18288  
+##  Anguilla                    :  1143   United Kingdom: 17145  
+##  Anhui                       :  1143   France        : 13716  
+##  Aruba                       :  1143   Australia     :  9144  
+##  Australian Capital Territory:  1143   Netherlands   :  5715  
+##  (Other)                     : 98298   (Other)       :227457  
+##       Lat               Long              Date                Cases          
+##  Min.   :-71.950   Min.   :-178.12   Min.   :2020-01-22   Min.   :        0  
+##  1st Qu.:  3.934   1st Qu.: -42.60   1st Qu.:2020-11-02   1st Qu.:      680  
+##  Median : 21.513   Median :  20.94   Median :2021-08-15   Median :    14429  
+##  Mean   : 19.719   Mean   :  22.18   Mean   :2021-08-15   Mean   :   959384  
+##  3rd Qu.: 40.464   3rd Qu.:  90.36   3rd Qu.:2022-05-28   3rd Qu.:   228517  
+##  Max.   : 71.707   Max.   : 178.06   Max.   :2023-03-09   Max.   :103802702  
+##  NA&#39;s   :2286      NA&#39;s   :2286                                              
+##      Deaths          Population       
+##  Min.   :      0   Min.   :6.700e+01  
+##  1st Qu.:      3   1st Qu.:5.866e+05  
+##  Median :    150   Median :6.524e+06  
+##  Mean   :  13380   Mean   :2.736e+07  
+##  3rd Qu.:   3032   3rd Qu.:2.585e+07  
+##  Max.   :1123836   Max.   :1.380e+09  
+##                    NA&#39;s   :13716</code></pre>
 </div>
 </div>
 
