@@ -23,6 +23,18 @@ In short, the US data was collected from individual state and county Departments
 
 *This data set is licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) by the Johns Hopkins University on behalf of its Center for Systems Science in Engineering. Copyright Johns Hopkins University 2020.*
 
+#### Feature Descriptions from Source
+
+**FIPS:** US only. Federal Information Processing Standards code that uniquely identifies counties within the USA.
+**Admin2:** County name. US only.
+**Province_State:** Province, state or dependency name.
+**Country_Region:** Country, region or sovereignty name. The names of locations included on the Website correspond with the official designations used by the U.S. Department of State.
+**Lat and Long_:** Dot locations on the dashboard. All points (except for Australia) shown on the map are based on geographic centroids, and are not representative of a specific address, building or any location at a spatial scale finer than a province/state. Australian dots are located at the centroid of the largest city in each state.
+**Confirmed:** Counts include confirmed and probable (where reported).
+**Deaths:** Counts include confirmed and probable (where reported).
+**UID:** Unique Identifier for each row entry.
+**ISO3:** Officially assigned country code identifiers.
+
 ### Environment Setup
 
 First we will import the libraries in R that are needed.
@@ -35,12 +47,12 @@ knitr::opts_chunk$set(echo = TRUE, fig.width = 10, fig.height = 6)
 # Import Libraries
 library(tidyverse)
 library(lubridate)
-library(ggmap)
 library(ggplot2)
+library(ggmap)
 library(gridExtra)
 # Import dataset
-US_Cases <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv")
-US_Deaths <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv")
-Global_Cases <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
-Global_Deaths <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv")
+us_cases <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv")
+us_deaths <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv")
+global_cases <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
+global_deaths <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv")
 ```
