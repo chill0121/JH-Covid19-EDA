@@ -1,1 +1,39 @@
+---
+title: "Johns Hopkins Covid-19 Data EDA"
+author: "Cody Hill"
+date: "2023-04-25"
+output:
+  pdf_document: default
+  html_document: default
+---
 
+## Setup
+
+Note, before using knitr please install all missing packages from the code cell below into your environment. Also, I recommended
+knitting into HTML as it has been optimized for viewing in that format.
+
+### Data Source Information
+
+This data was procured from <>
+
+From the source:
+
+
+### Environment Setup
+
+First we will import the libraries in R that are needed.
+
+Then, we will import the data using a URL directly from the source, this means it will update anytime we reknit.
+
+```{r Setup RMD}
+# Output all commands run and set a standard plot size
+knitr::opts_chunk$set(echo = TRUE, fig.width = 10, fig.height = 6)
+# Import Libraries
+library(tidyverse)
+library(lubridate)
+library(ggmap)
+library(ggplot2)
+library(gridExtra)
+# Import dataset
+import_url <- read.csv("https://data.cityofnewyork.us/api/views/833y-fsy8/rows.csv?accessType=DOWNLOAD")
+```
