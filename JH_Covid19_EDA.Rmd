@@ -134,5 +134,38 @@ us_data <- us_data %>%
 head(us_data)
 ```
 ```{r Cleaning Global Data}
+# Global_deaths transformations
+global_deaths <- global_deaths %>%
+    # Pivot all the date columns
+    pivot_longer(., -c('Province.State', 'Country.Region', 'Lat', 'Long'),
+        names_to = 'Date',
+        values_to = 'Deaths') %>%
+    # Rename some features
+    rename(., Province_State = 'Province.State',
+        County_Region = 'Country.Region')
 
+# Global_Cases transformations
+global_cases <- global_cases %>%
+    # Pivot all the date columns
+    pivot_longer(., -c('Province.State', 'Country.Region', 'Lat', 'Long'),
+        names_to = 'Date',
+        values_to = 'Cases') %>%
+    # Rename some features
+    rename(., Province_State = 'Province.State',
+        County_Region = 'Country.Region')
+
+# Merge into one dataframe
+global_data <- full_join(global_cases, global_deaths)
+
+# Remove the X in the dates and mutate to Date class
+global_data$Date <- gsub('X', '', as.character(global_data$Date))
+global_data <- global_data %>%
+    mutate(Date = mdy(Date))
+
+# Change character classes into factors
+global_data <- global_data %>%
+        mutate(across(where(is.character), as.factor))
+
+# Display changes
+head(global_data)
 ```
