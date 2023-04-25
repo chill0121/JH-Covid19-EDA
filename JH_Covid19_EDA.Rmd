@@ -203,7 +203,27 @@ global_data <- global_data %>%
 ```
 
 Finally, we should take a look at a summary of our two datasets and see if we can make any high level conclusions.
+
 ```{r Summary}
 summary(us_data)
 summary(global_data)
 ```
+
+Looks like there are a few issues in the US data. The minimum of cases and deaths is showing a negative value.
+
+```{r Negative Cases and Deaths}
+filter(us_data, Cases < 0 | Deaths < 0)
+```
+
+Looks to be all from the same 3 entries. Not a significant amount of data, easiest to just drop the rows in this case.
+Also, since cases and deaths are cumulative sums (rolling total) we aren't missing much if we do drop them (i.e. we will likely pick up whatever these were intended to be in the next valid entry).
+
+```{r Drop Negatives}
+# Before
+dim(us_data)
+us_data <- us_data[us_data$Cases >= 0 | us_data$Deaths >= 0, ]
+# After
+dim(us_data)
+```
+
+We can see here that we've successfully removed the 3 bad entries.
