@@ -689,6 +689,30 @@ see if we can make any high level conclusions.</p>
 ##  3rd Qu.:   3032   3rd Qu.:2.585e+07  
 ##  Max.   :1123836   Max.   :1.380e+09  
 ##                    NA&#39;s   :13716</code></pre>
+<p>Looks like there are a few issues in the US data. The minimum of
+cases and deaths is showing a negative value.</p>
+<pre class="r"><code>filter(us_data, Cases &lt; 0 | Deaths &lt; 0)</code></pre>
+<pre><code>## # A tibble: 3 × 10
+##   UID      County     Province_State Country_Region   Lat  Long Date       Cases
+##   &lt;fct&gt;    &lt;fct&gt;      &lt;fct&gt;          &lt;fct&gt;          &lt;dbl&gt; &lt;dbl&gt; &lt;date&gt;     &lt;int&gt;
+## 1 84090037 Unassigned North Carolina US                 0     0 2022-11-09   -34
+## 2 84090045 Unassigned South Carolina US                 0     0 2022-05-05 -3073
+## 3 84090045 Unassigned South Carolina US                 0     0 2022-05-06 -3073
+## # ℹ 2 more variables: Population &lt;int&gt;, Deaths &lt;int&gt;</code></pre>
+<p>Looks to be all from the same 3 entries. Not a significant amount of
+data, easiest to just drop the rows in this case. Also, since cases and
+deaths are cumulative sums (rolling total) we aren’t missing much if we
+do drop them (i.e. we will likely pick up whatever these were intended
+to be in the next valid entry).</p>
+<pre class="r"><code># Before
+dim(us_data)</code></pre>
+<pre><code>## [1] 3819906      10</code></pre>
+<pre class="r"><code>us_data &lt;- us_data[us_data$Cases &gt;= 0 | us_data$Deaths &gt;= 0, ]
+# After
+dim(us_data)</code></pre>
+<pre><code>## [1] 3819903      10</code></pre>
+<p>We can see here that we’ve successfully removed the 3 bad
+entries.</p>
 </div>
 </div>
 
