@@ -9,12 +9,14 @@ output:
 
 ## Setup
 
-Note, before using knitr please install all missing packages from the code cell below into your environment. Also, I recommended
-knitting into HTML as it has been optimized for viewing in that format.
+Note, before using knitr please install all missing packages from the code cell below into your environment. 
+
+Also, I recommended knitting into HTML as it has been optimized for viewing in that format.
 
 ### Data Source Information
 
 **"COVID-19 Data Repository by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University"**
+
 This data was procured from <https://github.com/CSSEGISandData/COVID-19> which is a github repository where Johns Hopkins compiled covid-19 data. This repository stopped updating on 3/10/23.
 In this report we are specifically looking at the `./csse_covid_19_data/csse_covid_19_time_series` data.
 
@@ -26,13 +28,21 @@ In short, the US data was collected from individual state and county Departments
 #### Feature Descriptions from Source
 
 **FIPS:** US only. Federal Information Processing Standards code that uniquely identifies counties within the USA.
+
 **Admin2:** County name. US only.
+
 **Province_State:** Province, state or dependency name.
+
 **Country_Region:** Country, region or sovereignty name. The names of locations included on the Website correspond with the official designations used by the U.S. Department of State.
+
 **Lat and Long_:** Dot locations on the dashboard. All points (except for Australia) shown on the map are based on geographic centroids, and are not representative of a specific address, building or any location at a spatial scale finer than a province/state. Australian dots are located at the centroid of the largest city in each state.
-**Confirmed:** Counts include confirmed and probable (where reported).
+
+**Cases:** Counts include confirmed and probable (where reported).
+
 **Deaths:** Counts include confirmed and probable (where reported).
+
 **UID:** Unique Identifier for each row entry.
+
 **ISO3:** Officially assigned country code identifiers.
 
 ### Environment Setup
@@ -60,13 +70,19 @@ global_deaths <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master
 ## Initial Look at the Data
 
 ```{r First Look}
-head(us_cases)
-head(us_deaths)
-head(global_cases)
-head(global_deaths)
+dim(us_cases)
+dim(us_deaths)
+dim(global_cases)
+dim(global_deaths)
+
+head(us_deaths[1:14])
+head(global_deaths[1:6])
 ```
 
+I'm slicing the output so we don't see the date columns as they will fill the screen.
 Here we can see each date is in an individual column **(feature)**, also `us_deaths` has an extra feature named `Population`.
+
+Also, interesting to see reporting started on January, 22, 2020.
 
 ## Clean / Transformation Stage
 
@@ -133,6 +149,11 @@ us_data <- us_data %>%
 # Display changes
 head(us_data)
 ```
+
+This will be much easier to work with.
+
+Now let's do a similar procedure with the global data.
+
 ```{r Cleaning Global Data}
 # Global_deaths transformations
 global_deaths <- global_deaths %>%
@@ -168,4 +189,10 @@ global_data <- global_data %>%
 
 # Display changes
 head(global_data)
+```
+
+This looks great too. Now let's get that population data and add it to each country in `global_data`.
+
+```{r Import Population to Global}
+
 ```
