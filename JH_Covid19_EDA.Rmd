@@ -56,3 +56,83 @@ us_deaths <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/css
 global_cases <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
 global_deaths <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv")
 ```
+
+## Initial Look at the Data
+
+```{r First Look}
+head(us_cases)
+head(us_deaths)
+head(global_cases)
+head(global_deaths)
+```
+
+Here we can see each date is in an individual column **(feature)**, also `us_deaths` has an extra feature named `Population`.
+
+## Clean / Transformation Stage
+
+To clean up these datasets we will do the following,
+
+US Data:
+
+- Pivot the date columns into rows
+- Merge the cases and deaths datasets, keeping population
+
+Global Data:
+
+- Pivot the date columns into rows
+- Merge the cases and death datasets
+- Import population data for each country and add a population column
+
+Also in both datasets,
+
+- Remove redundant features and several that we won't be using
+- Rename a few features for consistency and readability
+- Transform feature class types for easier analysis
+- Check for duplicates and missing entries, NA, Null etc.
+
+### Cleaning US Datasets
+
+```{r Cleaning US Data}
+# US_Deaths transformations
+us_deaths <- us_deaths %>%
+    # Pivot all the date columns
+    pivot_longer(., -c('UID', 'iso2', 'iso3', 'code3', 'FIPS', 'Admin2', 'Province_State', 'Country_Region', 'Lat', 'Long_', 'Combined_Key', 'Population'),
+        names_to = 'Date',
+        values_to = 'Deaths') %>%
+    # Remove unnecessary features
+    select(., -iso2, -iso3, -code3, -FIPS, -Combined_Key) %>%
+    # Rename some features
+    rename(., County = 'Admin2',
+        Long = 'Long_')
+
+# US_Cases transformations
+us_cases <- us_cases %>%
+    # Pivot all the date columns
+    pivot_longer(., -c('UID', 'iso2', 'iso3', 'code3', 'FIPS', 'Admin2', 'Province_State', 'Country_Region', 'Lat', 'Long_', 'Combined_Key'),
+        names_to = 'Date',
+        values_to = 'Cases') %>%
+    # Remove unnecessary features
+    select(., -iso2, -iso3, -code3, -FIPS, -Combined_Key) %>%
+    # Rename some features
+    rename(., County = 'Admin2',
+        Long = 'Long_')
+
+# Merge into one dataframe
+us_data <- full_join(us_cases, us_deaths)
+
+# Remove the X in the dates and mutate to Date class
+us_data$Date <- gsub('X', '', as.character(us_data$Date))
+us_data <- us_data %>%
+    mutate(Date = mdy(Date))
+
+# Change character classes and UID into factors
+us_data <- us_data %>%
+        mutate(across(where(is.character), as.factor)) %>%
+        mutate(UID = as.factor(UID))
+
+# Display changes
+head(us_data)
+```
+```{r Cleaning Global Data}
+
+```
