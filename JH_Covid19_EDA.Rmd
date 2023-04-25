@@ -1,5 +1,5 @@
 ---
-title: "Johns Hopkins Covid-19 Data EDA"
+title: "Johns Hopkins' Covid-19 Data EDA"
 author: "Cody Hill"
 date: "2023-04-25"
 output:
@@ -14,10 +14,14 @@ knitting into HTML as it has been optimized for viewing in that format.
 
 ### Data Source Information
 
-This data was procured from <>
+**"COVID-19 Data Repository by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University"**
+This data was procured from <https://github.com/CSSEGISandData/COVID-19> which is a github repository where Johns Hopkins compiled covid-19 data. This repository stopped updating on 3/10/23.
+In this report we are specifically looking at the `./csse_covid_19_data/csse_covid_19_time_series` data.
 
-From the source:
+I encourage all who reads this report to go read the `readme.md` file in the source's repository to gain more insights about where this data was collected, how it was validated, and compiled into this dataset.
+In short, the US data was collected from individual state and county Departments of Health and the global data was collected from various government bodies within each country (with a few exceptions).
 
+*This data set is licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) by the Johns Hopkins University on behalf of its Center for Systems Science in Engineering. Copyright Johns Hopkins University 2020.*
 
 ### Environment Setup
 
