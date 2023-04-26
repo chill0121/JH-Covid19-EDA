@@ -271,3 +271,45 @@ We will leave these as well and just be mindful of these entries when we do our 
 With the cleaning and transformation of the data complete, let's begin plotting some of these to get
 a better sense of the data and hopefully tease out some conclusions.
 
+First I think it'd be useful to plot the cases and deaths per capita per country, scaling our data to population size which normalizes comparisons between countries.
+
+We'll only display the top 50 since there are 201 `Countries_Regions`.
+```{r Cases and Deaths Per Capita}
+# Group by Country, and max population (since cases and deaths are cumulative we don't sum)
+# Note na.rm = TRUE because otherwise R will throw a max of NA if one is in the set
+country_totals <- global_data %>%
+    group_by(Country_Region) %>%
+    summarize(Cases = max(Cases, na.rm = TRUE),
+        Deaths = max(Deaths, na.rm = TRUE),
+        Population = max(Population, na.rm = TRUE),
+        Lat = median(Lat, na.rm = TRUE),
+        Long = median(Long, na.rm = TRUE),
+        Per_Capita_Cases = max(Cases, na.rm = TRUE) / max(Population, na.rm = TRUE),
+        Per_Capita_Deaths = max(Deaths, na.rm = TRUE) / max(Population, na.rm = TRUE))
+
+# Sort by per capita in descending order and order the factors for graph order
+country_pc_cases <- arrange(country_totals, desc(country_totals$Per_Capita_Cases))
+country_pc_cases$Country_Region <- fct_inorder(country_pc_cases$Country_Region)
+
+country_pc_deaths <- arrange(country_totals, desc(country_totals$Per_Capita_Deaths))
+country_pc_deaths$Country_Region <- fct_inorder(country_pc_deaths$Country_Region)
+
+country_pc_cases_plot <- country_pc_cases[1:50, ] %>%
+   ggplot(., aes(x = Country_Region, y = Per_Capita_Cases, fill = Country_Region)) + 
+   geom_bar(stat = 'identity', show.legend = FALSE) +
+   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+   labs(title = 'Covid-19 Cases Per Capita by Country as of March 9, 2023',
+        x = 'Country / Region', y = 'Covid-19 Cases per Capita',
+        caption = 'Source:<https://github.com/CSSEGISandData/COVID-19>')
+
+country_pc_deaths_plot <- country_pc_deaths[1:50, ] %>%
+   ggplot(., aes(x = Country_Region, y = Per_Capita_Deaths, fill = Country_Region)) + 
+   geom_bar(stat = 'identity', show.legend = FALSE) +
+   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+   labs(title = 'Covid-19 Deaths Per Capita by Country as of March 9, 2023',
+        x = 'Country / Region', y = 'Covid-19 Deaths per Capita',
+        caption = 'Source:<https://github.com/CSSEGISandData/COVID-19>')
+
+country_pc_cases_plot
+country_pc_deaths_plot
+```
