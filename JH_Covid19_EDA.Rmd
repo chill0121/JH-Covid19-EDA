@@ -271,6 +271,8 @@ We will leave these as well and just be mindful of these entries when we do our 
 With the cleaning and transformation of the data complete, let's begin plotting some of these to get
 a better sense of the data and hopefully tease out some conclusions.
 
+### Global Data
+
 First I think it'd be useful to plot the cases and deaths per capita (1 million) per country, scaling our data to population size which normalizes comparisons between countries.
 
 We'll only display the top 50 since there are 201 `Countries_Regions`.
@@ -344,7 +346,7 @@ country_deaths_per_case_plot <- country_deaths_per_case[1:50, ] %>%
    annotate('label', x = 7, y = 0.37, angle = 90, color = '#f92f07', label = 'Cropped for Clarity') +
    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
    labs(title = 'Percentage of Deaths per Case of Covid-19 by Country as of March 9, 2023',
-        x = 'Country / Region', y = 'Covid-19 Deaths per Cases (Log Scaled)',
+        x = 'Country / Region', y = 'Covid-19 Deaths per Cases',
         caption = 'Source:<https://github.com/CSSEGISandData/COVID-19>')
 
 country_deaths_per_case_plot
@@ -356,3 +358,9 @@ country_deaths_per_case_plot
 - Yemen had a very high mortality rate.
 - Further on we see Peru near the top which confirms our previous hypothesis when looking at total number of deaths, they struggled with Covid-19.
 
+### US Data
+
+Let's utilize the `Lat` and `Long` coordinates to graph our data on a map of the US.
+
+```{r US Map}
+```
