@@ -80,7 +80,7 @@ Here we can see each date is in an individual column **(feature)**, also `us_dea
 
 Also, interesting to see reporting started on January, 22, 2020.
 
-## Clean / Transformation Stage
+## Cleaning and Transformation Stage
 ***
 
 To clean up these datasets we will do the following,
@@ -209,8 +209,19 @@ summary(us_data)
 summary(global_data)
 ```
 
-Looks like there are a few issues in the US data. The minimum of cases and deaths is showing a negative value.
+Even with just this we can determine several things:
 
+- This data goes from 2020/01/22 to 2023/03/09
+- The distribution of cases is heavily right-skewed (positively skewed) which makes sense considering there are more countries with low populations when compared to large countries pushing the mean towards the right. Also, it's a cumulative sum.
+- This dataset tracks a high granularity of countries, given the minimum population is 67.
+
+Looks like there are a few issues here as well:
+
+- In the US data the minimum of `Cases` and `Deaths` is showing a negative value
+- In the global data there are NAs in `Lat` and `Long`
+- In the global data there are NAs in `Population`
+
+We can look at these in order.
 ```{r Negative Cases and Deaths}
 filter(us_data, Cases < 0 | Deaths < 0)
 ```
@@ -221,9 +232,34 @@ Also, since cases and deaths are cumulative sums (rolling total) we aren't missi
 ```{r Drop Negatives}
 # Before
 dim(us_data)
+# Remove bad entries
 us_data <- us_data[us_data$Cases >= 0 | us_data$Deaths >= 0, ]
 # After
 dim(us_data)
 ```
 
 We can see here that we've successfully removed the 3 bad entries.
+
+```{r Lat and Long NAs}
+lat_na = (filter(global_data, global_data$Lat == is.na(Lat)))
+unique(lat_na$Province_State)
+```
+
+Interesting, this dataset includes the cruise ships that were quarantined for Covid-19 outbreaks. 
+It makes sense there there isn't coordinate data to go along with these entries. We will leave them alone.
+
+```{r Population NAs}
+which(is.na(global_data$Population))
+global_data[5716,]
+global_data[326898,]
+```
+
+This also looks fine, Antarctica and the 2022 Winter Olympics are certainly interesting entries but won't necessarily have a population associated.
+We will leave these as well and just be mindful of these entries when we do our analysis.
+
+## Visualizations
+***
+
+With the cleaning and transformation of the data complete, let's begin plotting some of these to get
+a better sense of the data and hopefully tease out some conclusions.
+
