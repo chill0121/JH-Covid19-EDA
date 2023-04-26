@@ -490,8 +490,8 @@ column <strong>(feature)</strong>, also <code>us_deaths</code> has an
 extra feature named <code>Population</code>.</p>
 <p>Also, interesting to see reporting started on January, 22, 2020.</p>
 </div>
-<div id="clean-transformation-stage" class="section level2">
-<h2>Clean / Transformation Stage</h2>
+<div id="cleaning-and-transformation-stage" class="section level2">
+<h2>Cleaning and Transformation Stage</h2>
 <hr />
 <p>To clean up these datasets we will do the following,</p>
 <p>US Data:</p>
@@ -689,8 +689,25 @@ see if we can make any high level conclusions.</p>
 ##  3rd Qu.:   3032   3rd Qu.:2.585e+07  
 ##  Max.   :1123836   Max.   :1.380e+09  
 ##                    NA&#39;s   :13716</code></pre>
-<p>Looks like there are a few issues in the US data. The minimum of
-cases and deaths is showing a negative value.</p>
+<p>Even with just this we can determine several things:</p>
+<ul>
+<li>This data goes from 2020/01/22 to 2023/03/09</li>
+<li>The distribution of cases is heavily right-skewed (positively
+skewed) which makes sense considering there are more countries with low
+populations when compared to large countries pushing the mean towards
+the right. Also, it’s a cumulative sum.</li>
+<li>This dataset tracks a high granularity of countries, given the
+minimum population is 67.</li>
+</ul>
+<p>Looks like there are a few issues here as well:</p>
+<ul>
+<li>In the US data the minimum of <code>Cases</code> and
+<code>Deaths</code> is showing a negative value</li>
+<li>In the global data there are NAs in <code>Lat</code> and
+<code>Long</code></li>
+<li>In the global data there are NAs in <code>Population</code></li>
+</ul>
+<p>We can look at these in order.</p>
 <pre class="r"><code>filter(us_data, Cases &lt; 0 | Deaths &lt; 0)</code></pre>
 <pre><code>## # A tibble: 3 × 10
 ##   UID      County     Province_State Country_Region   Lat  Long Date       Cases
@@ -707,13 +724,54 @@ to be in the next valid entry).</p>
 <pre class="r"><code># Before
 dim(us_data)</code></pre>
 <pre><code>## [1] 3819906      10</code></pre>
-<pre class="r"><code>us_data &lt;- us_data[us_data$Cases &gt;= 0 | us_data$Deaths &gt;= 0, ]
+<pre class="r"><code># Remove bad entries
+us_data &lt;- us_data[us_data$Cases &gt;= 0 | us_data$Deaths &gt;= 0, ]
 # After
 dim(us_data)</code></pre>
 <pre><code>## [1] 3819903      10</code></pre>
 <p>We can see here that we’ve successfully removed the 3 bad
 entries.</p>
+<p>Now for the coordinate data NAs.</p>
+<pre class="r"><code>lat_na = (filter(global_data, global_data$Lat == is.na(Lat)))
+unique(lat_na$Province_State)</code></pre>
+<pre><code>## [1] Diamond Princess Grand Princess                   
+## 92 Levels:  Alberta Anguilla Anhui Aruba ... Zhejiang</code></pre>
+<p>Interesting, this dataset includes the cruise ships that were
+quarantined for Covid-19 outbreaks. It makes sense there there isn’t
+coordinate data to go along with these entries. We will leave them
+alone.</p>
+<p>Now for the population data NAs.</p>
+<pre class="r"><code># Find index of NAs
+which(is.na(global_data$Population))</code></pre>
+<p><em>Output hidden here because it’s too long.</em></p>
+<pre class="r"><code># Display a few NA examples
+global_data[5716,]</code></pre>
+<pre><code>## # A tibble: 1 × 8
+##   Province_State Country_Region   Lat  Long Date       Cases Deaths Population
+##   &lt;fct&gt;          &lt;fct&gt;          &lt;dbl&gt; &lt;dbl&gt; &lt;date&gt;     &lt;int&gt;  &lt;int&gt;      &lt;int&gt;
+## 1 &quot;&quot;             Antarctica     -71.9  23.3 2020-01-22     0      0         NA</code></pre>
+<pre class="r"><code>global_data[326898,]</code></pre>
+<pre><code>## # A tibble: 1 × 8
+##   Province_State Country_Region     Lat  Long Date       Cases Deaths Population
+##   &lt;fct&gt;          &lt;fct&gt;            &lt;dbl&gt; &lt;dbl&gt; &lt;date&gt;     &lt;int&gt;  &lt;int&gt;      &lt;int&gt;
+## 1 &quot;&quot;             Winter Olympics…  39.9  116. 2023-03-09   535      0         NA</code></pre>
+<pre class="r"><code>global_data[121222,]</code></pre>
+<pre><code>## # A tibble: 1 × 8
+##   Province_State Country_Region     Lat  Long Date       Cases Deaths Population
+##   &lt;fct&gt;          &lt;fct&gt;            &lt;dbl&gt; &lt;dbl&gt; &lt;date&gt;     &lt;int&gt;  &lt;int&gt;      &lt;int&gt;
+## 1 &quot;&quot;             Diamond Princess     0     0 2020-03-25   712     10         NA</code></pre>
+<p>This also looks fine, Antarctica and the 2022 Winter Olympics are
+certainly interesting entries but won’t necessarily have a population
+associated. We will leave these as well and just be mindful of these
+entries when we do our analysis.</p>
 </div>
+</div>
+<div id="visualizations" class="section level2">
+<h2>Visualizations</h2>
+<hr />
+<p>With the cleaning and transformation of the data complete, let’s
+begin plotting some of these to get a better sense of the data and
+hopefully tease out some conclusions.</p>
 </div>
 
 

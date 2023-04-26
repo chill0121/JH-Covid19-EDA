@@ -240,6 +240,7 @@ dim(us_data)
 
 We can see here that we've successfully removed the 3 bad entries.
 
+Now for the coordinate data NAs.
 ```{r Lat and Long NAs}
 lat_na = (filter(global_data, global_data$Lat == is.na(Lat)))
 unique(lat_na$Province_State)
@@ -248,10 +249,17 @@ unique(lat_na$Province_State)
 Interesting, this dataset includes the cruise ships that were quarantined for Covid-19 outbreaks. 
 It makes sense there there isn't coordinate data to go along with these entries. We will leave them alone.
 
-```{r Population NAs}
+Now for the population data NAs.
+```{r, Population NAs 1, results = 'hide'}
+# Find index of NAs
 which(is.na(global_data$Population))
+```
+*Output hidden here because it's too long.*
+```{r Population NAs 2}
+# Display a few NA examples
 global_data[5716,]
 global_data[326898,]
+global_data[121222,]
 ```
 
 This also looks fine, Antarctica and the 2022 Winter Olympics are certainly interesting entries but won't necessarily have a population associated.
