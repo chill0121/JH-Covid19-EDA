@@ -51,8 +51,9 @@ knitr::opts_chunk$set(echo = TRUE, fig.width = 10, fig.height = 6)
 library(tidyverse)
 library(lubridate)
 library(ggplot2)
-library(ggmap)
-library(gridExtra)
+library(usmap)
+library(viridis)
+
 # Import dataset
 us_cases <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv")
 us_deaths <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv")
@@ -113,10 +114,11 @@ us_deaths <- us_deaths %>%
         names_to = 'Date',
         values_to = 'Deaths') %>%
     # Remove unnecessary features
-    select(., -iso2, -iso3, -code3, -FIPS, -Combined_Key) %>%
+    select(., -iso2, -iso3, -code3, -Combined_Key) %>%
     # Rename some features
     rename(., County = 'Admin2',
-        Long = 'Long_')
+        Long = 'Long_',
+        fips = 'FIPS')
 
 # US_Cases transformations
 us_cases <- us_cases %>%
@@ -125,10 +127,11 @@ us_cases <- us_cases %>%
         names_to = 'Date',
         values_to = 'Cases') %>%
     # Remove unnecessary features
-    select(., -iso2, -iso3, -code3, -FIPS, -Combined_Key) %>%
+    select(., -iso2, -iso3, -code3, -Combined_Key) %>%
     # Rename some features
     rename(., County = 'Admin2',
-        Long = 'Long_')
+        Long = 'Long_',
+        fips = 'FIPS')
 
 # Merge into one dataframe
 us_data <- full_join(us_cases, us_deaths)
@@ -273,7 +276,7 @@ a better sense of the data and hopefully tease out some conclusions.
 
 ### Global Data
 
-First I think it'd be useful to plot the cases and deaths per capita (1 million) per country, scaling our data to population size which normalizes comparisons between countries.
+First I think it'd be useful to plot the cases and deaths per capita (100,000) per country, scaling our data to population size which normalizes comparisons between countries.
 
 We'll only display the top 50 since there are 201 `Countries_Regions`.
 ```{r Cases and Deaths Per Capita}
@@ -286,31 +289,31 @@ country_totals <- global_data %>%
         Population = max(Population, na.rm = TRUE),
         Lat = median(Lat, na.rm = TRUE),
         Long = median(Long, na.rm = TRUE),
-        Cases_Per_Million = max(Cases, na.rm = TRUE) / (max(Population, na.rm = TRUE) / 100000),
-        Deaths_Per_Million = max(Deaths, na.rm = TRUE) / (max(Population, na.rm = TRUE) / 100000),
+        Cases_Per_100k = max(Cases, na.rm = TRUE) / (max(Population, na.rm = TRUE) / 100000),
+        Deaths_Per_100k = max(Deaths, na.rm = TRUE) / (max(Population, na.rm = TRUE) / 100000),
         Deaths_Per_Case = max(Deaths, na.rm = TRUE) / max(Cases, na.rm = TRUE))
 
 # Sort by per capita in descending order and order the factors for graph order
-country_pc_cases <- arrange(country_totals, desc(country_totals$Cases_Per_Million))
+country_pc_cases <- arrange(country_totals, desc(country_totals$Cases_Per_100k))
 country_pc_cases$Country_Region <- fct_inorder(country_pc_cases$Country_Region)
 
-country_pc_deaths <- arrange(country_totals, desc(country_totals$Deaths_Per_Million))
+country_pc_deaths <- arrange(country_totals, desc(country_totals$Deaths_Per_100k))
 country_pc_deaths$Country_Region <- fct_inorder(country_pc_deaths$Country_Region)
 
 country_pc_cases_plot <- country_pc_cases[1:50, ] %>%
-   ggplot(., aes(x = Country_Region, y = Cases_Per_Million, fill = Country_Region)) + 
+   ggplot(., aes(x = Country_Region, y = Cases_Per_100k, fill = Country_Region)) + 
    geom_bar(stat = 'identity', show.legend = FALSE) +
    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
-   labs(title = 'Covid-19 Cases Per Million by Country as of March 9, 2023',
-        x = 'Country / Region', y = 'Covid-19 Cases per Million',
+   labs(title = 'Covid-19 Cases Per 100k by Country as of March 9, 2023',
+        x = 'Country / Region', y = 'Covid-19 Cases per 100k',
         caption = 'Source:<https://github.com/CSSEGISandData/COVID-19>')
 
 country_pc_deaths_plot <- country_pc_deaths[1:50, ] %>%
-   ggplot(., aes(x = Country_Region, y = Deaths_Per_Million, fill = Country_Region)) + 
+   ggplot(., aes(x = Country_Region, y = Deaths_Per_100k, fill = Country_Region)) + 
    geom_bar(stat = 'identity', show.legend = FALSE) +
    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
-   labs(title = 'Covid-19 Deaths Per Million by Country as of March 9, 2023',
-        x = 'Country / Region', y = 'Covid-19 Deaths per Million',
+   labs(title = 'Covid-19 Deaths Per 100k by Country as of March 9, 2023',
+        x = 'Country / Region', y = 'Covid-19 Deaths per 100k',
         caption = 'Source:<https://github.com/CSSEGISandData/COVID-19>')
 
 country_pc_cases_plot
@@ -345,7 +348,7 @@ country_deaths_per_case_plot <- country_deaths_per_case[1:50, ] %>%
    annotate('label', x = 6, y = 0.4, angle = 90, color = '#f92f07', label = 'North Korea = 6.0') +
    annotate('label', x = 7, y = 0.37, angle = 90, color = '#f92f07', label = 'Cropped for Clarity') +
    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
-   labs(title = 'Percentage of Deaths per Case of Covid-19 by Country as of March 9, 2023',
+   labs(title = 'Deaths per Case Ratio of Covid-19 by Country as of March 9, 2023',
         x = 'Country / Region', y = 'Covid-19 Deaths per Cases',
         caption = 'Source:<https://github.com/CSSEGISandData/COVID-19>')
 
@@ -360,7 +363,28 @@ country_deaths_per_case_plot
 
 ### US Data
 
-Let's utilize the `Lat` and `Long` coordinates to graph our data on a map of the US.
+Let's utilize the location data to graph our data on a map of the US.
 
+Specifically I'd like to see the deaths per 100,000 organized by county.
 ```{r US Map}
+options(dplyr.summarise.inform = FALSE)
+us_counties_totals <- us_data %>%
+    group_by(fips, County) %>%
+    summarize(Cases = max(Cases, na.rm = TRUE),
+        Deaths = max(Deaths, na.rm = TRUE),
+        Population = max(Population, na.rm = TRUE),
+        Lat = median(Lat, na.rm = TRUE),
+        Long = median(Long, na.rm = TRUE),
+        Cases_Per_100k = max(Cases, na.rm = TRUE) / (max(Population, na.rm = TRUE) / 100000),
+        Deaths_Per_100k = max(Deaths, na.rm = TRUE) / (max(Population, na.rm = TRUE) / 100000),
+        Deaths_Per_Case = max(Deaths, na.rm = TRUE) / max(Cases, na.rm = TRUE))
+us_counties_totals[us_counties_totals == 'Inf'] <- 0
+
+plot_usmap(regions = 'counties', data = filter(us_counties_totals, County != ''), values = 'Deaths_Per_100k') +
+    scale_fill_viridis() +
+    labs(title = 'Covid-19 Deaths per 100,000 by US County as of March 9, 2023',
+        caption = 'Source:<https://github.com/CSSEGISandData/COVID-19>')
 ```
+
+- With some exceptions it looks like more rural areas were prone to Covid-19 deaths when compared to more urban areas (e.g. no large cities in California rate high here, NYC, Chicago, etc).
+
