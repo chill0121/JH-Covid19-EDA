@@ -53,6 +53,7 @@ library(lubridate)
 library(ggplot2)
 library(usmap)
 library(viridis)
+library(forecast)
 
 # Import dataset
 us_cases <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv")
@@ -375,9 +376,7 @@ us_counties_totals <- us_data %>%
         Population = max(Population, na.rm = TRUE),
         Lat = median(Lat, na.rm = TRUE),
         Long = median(Long, na.rm = TRUE),
-        Cases_Per_100k = max(Cases, na.rm = TRUE) / (max(Population, na.rm = TRUE) / 100000),
-        Deaths_Per_100k = max(Deaths, na.rm = TRUE) / (max(Population, na.rm = TRUE) / 100000),
-        Deaths_Per_Case = max(Deaths, na.rm = TRUE) / max(Cases, na.rm = TRUE))
+        Deaths_Per_100k = max(Deaths, na.rm = TRUE) / (max(Population, na.rm = TRUE) / 100000))
 us_counties_totals[us_counties_totals == 'Inf'] <- 0
 
 plot_usmap(regions = 'counties', data = filter(us_counties_totals, County != ''), values = 'Deaths_Per_100k') +
@@ -388,3 +387,52 @@ plot_usmap(regions = 'counties', data = filter(us_counties_totals, County != '')
 
 - With some exceptions it looks like more rural areas were prone to Covid-19 deaths when compared to more urban areas (e.g. no large cities in California rate high here, NYC, Chicago, etc).
 
+## Modelling Pre-Vaccine Data
+***
+
+Here I think it would be interesting to develop a model on the date from the beginning of Covid reporting (January, 22, 2020)
+until the first Covid-19 vaccine was given in the US (December, 15, 2020).
+
+With this model fitted we will then forecast the death rate per day as if the vaccine was not developed, because
+our model will be trained on data without the vaccine's involvement.
+
+First we will mutate a dataframe to show deaths per day for the whole dataset, aka reality.
+```{r Model - Reality}
+# Create a dataframe consolidating each date's data in the US
+time_series_us <- us_data %>%
+    group_by(Date) %>%
+    summarize(Cases = sum(Cases),
+        Deaths = sum(Deaths)) %>%
+        mutate(Deaths_Today = Deaths - lag(Deaths, default = first(Deaths)),
+            Cases_Today = Cases - lag(Cases, default = first(Cases)))
+
+# Plot the deaths per day
+ggplot(time_series_us) +
+    geom_line(aes(x = Date, y = Deaths_Today), color = 'darkblue')
+```
+
+- You can really see how the vaccine reduced the mortality rate, though it took awhile for it to take hold (maybe vaccine hold-outs and issues distributing, especially winter 2023.
+- There is a high amount of seasonality frequency to this data.
+- The seasonality will be difficult to model because the vaccine came out so quickly. We really only saw a portion of the seasonality (less than 1 year) occur and thus the data our model to train on is sparse in this sense.
+
+Let's begin building the model and train it only on data from January, 22, 2020 to December, 15, 2020.
+```{r Model - Fiction}
+# Filter data to only include pre-vaccine dates
+pre_vaccine_us <- filter(time_series_us, Date < '2020-12-15')
+pre_vaccine_us <- pre_vaccine_us %>%
+    select(-c(Cases, Deaths, Cases_Today))
+
+# Build model with frequency matching the seasonality
+data_ts <- ts(pre_vaccine_us, start = c(2020,1,22), frequency = 328)
+fit <- auto.arima(data_ts[, 2], seasonal = FALSE)
+forecast_no_vaccine <- forecast(fit, 365)
+
+plot(forecast_no_vaccine, 
+    xlab = 'Date', 
+    ylab = 'Deaths per Day', 
+    main = 'Deaths per Day Forecast', 
+    sub = 'ARIMA(2,1,2) Model')
+
+checkresiduals(forecast_no_vaccine)
+```
+- We can see here that 
