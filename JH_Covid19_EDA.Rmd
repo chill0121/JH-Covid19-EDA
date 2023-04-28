@@ -411,11 +411,12 @@ ggplot(time_series_us) +
     geom_line(aes(x = Date, y = Deaths_Today), color = 'darkblue')
 ```
 
-- You can really see how the vaccine reduced the mortality rate, though it took awhile for it to take hold (maybe vaccine hold-outs and issues distributing, especially winter 2023.
+- You can really see how the vaccine reduced the mortality rate, though it took awhile for it to take hold (vaccine hold-outs, issues distributing), especially winter 2023 you no longer see a spike.
 - There is a high amount of seasonality frequency to this data.
-- The seasonality will be difficult to model because the vaccine came out so quickly. We really only saw a portion of the seasonality (less than 1 year) occur and thus the data our model to train on is sparse in this sense.
+- The seasonality will be difficult to model because the vaccine came out so quickly meaning we only see a portion of the seasonality (less than 1 year) occur pre-vaccine and thus the data our model to train on will be sparse in this sense.
 
-Let's begin building the model and train it only on data from January, 22, 2020 to December, 15, 2020.
+**Let's begin building the model and train it only on data from January, 22, 2020 to December, 15, 2020.**
+
 ```{r Model - Fiction}
 # Filter data to only include pre-vaccine dates
 pre_vaccine_us <- filter(time_series_us, Date < '2020-12-15')
@@ -425,14 +426,26 @@ pre_vaccine_us <- pre_vaccine_us %>%
 # Build model with frequency matching the seasonality
 data_ts <- ts(pre_vaccine_us, start = c(2020,1,22), frequency = 328)
 fit <- auto.arima(data_ts[, 2], seasonal = FALSE)
-forecast_no_vaccine <- forecast(fit, 365)
+forecast_no_vaccine <- forecast(fit, 365*2)
 
 plot(forecast_no_vaccine, 
     xlab = 'Date', 
     ylab = 'Deaths per Day', 
     main = 'Deaths per Day Forecast', 
     sub = 'ARIMA(2,1,2) Model')
-
-checkresiduals(forecast_no_vaccine)
+# Real data plotted on top
+par(new = TRUE)
+plot(time_series_us$Date, time_series_us$Deaths_Today, 
+    col = rgb(red = 0, blue = 1, green = 1, alpha = 0.3), 
+    type = 'l',
+    lty = 1,
+    ylim = c(-4000, 9000),
+    xlab = '', 
+    ylab = '',
+    xaxt = 'n',
+    yaxt = 'n')
 ```
-- We can see here that 
+*Note the black line is the REAL data, and the blue/grey is the PREDICTED data.*
+
+- We can see that it didn't capture the seasonality here but it still gives a great prediction cone.
+- Placeholder
