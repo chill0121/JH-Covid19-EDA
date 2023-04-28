@@ -14,6 +14,17 @@ Note, before using knitr please install all missing packages from the code cell 
 
 Also, I recommended knitting into HTML as it has been optimized for viewing in that format.
 
+R Packages used:
+
+- library(tidyverse)
+- library(lubridate)
+- library(ggplot2)
+- library(usmap)
+- library(viridis)
+- library(forecast)
+
+Please use install.packages('...') to install any you may have missing.
+
 ### Data Source Information
 
 **"COVID-19 Data Repository by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University"**
@@ -476,8 +487,8 @@ Some key takeaways that were noted from above:
 ***
 
 I was intentional during this analysis to ensure I stepped through this dataset with an empirical lense and be unbiased as possible. However,
-it must be stated that from the beginning of the pandemic and until recently, I worked in several major metropolitan hospitals, which goes without
-saying I had a unique perspective into the Covid-19 pandemic and how the public handled it. I may not be able to pinpoint how this may have affected my analysis
+it must be stated that from the beginning of the pandemic and until recently, I worked in several major metropolitan hospitals, which
+gave me a unique perspective into the Covid-19 pandemic and how the public handled it. I may not be able to pinpoint how this may have affected my analysis
 here, but it undoubtedly did. Hopefully I've mitigated those effects and presented valid inferences.
 
 There is also certainly a large amount of bias from within this dataset itself by way of the hundreds of different sources it took to compile this data - from different US counties, states, and countries
