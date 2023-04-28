@@ -427,10 +427,8 @@ McMullen county has a small population for its size with 743 people, 186 total c
 ## Modelling Pre-Vaccine Data
 ***
 
-From here I think it would be interesting to develop a model trained on data from the beginning of Covid reporting (January, 22, 2020)
-until the first Covid-19 vaccine was given in the US (December, 15, 2020).
-
-With this model trained and fitted with data pre-vaccine we will then forecast the death rate per day as if the vaccine was not developed.
+**From here I think it would be interesting to develop a model trained on data from the beginning of Covid reporting (January, 22, 2020)**
+**until the first Covid-19 vaccine was given in the US (December, 15, 2020). With this model trained and fitted with data pre-vaccine we will then forecast the death rate per day as if the vaccine was not developed.**
 
 First we will create a new feature to show deaths per day for the whole dataset (reversing the cumulative sum) and plot it to give us something to compare our forecasting model to.
 ```{r Model - Reality}
@@ -495,6 +493,7 @@ plot(time_series_us$Date, time_series_us$Deaths_Today,
 - Interesting to see how flat deaths per day is from Spring of 2022 on towards present day, especially compared to this forecasting model's alternate world.
 
 Potential problems with this model:
+
 - As was mentioned before the training data in this case is too short to capture proper seasonality to set the frequency hyperparameter. Aggregating from days to weeks might help a little but would only serve to smooth the daily reporting noise.
 - It doesn't account for mutating Covid-19 strains (e.g. omicron and delta variants arouse in mid and late 2021).
 - Arguably you could extend the training set to cut off when a certain percentage of the population received the vaccine or maybe the 2nd dose. As rollout in December of 2020 was strictly healthcare workers, immunosuppressed, and the elderly its effects were not seen for quite some time when more doses were available.
