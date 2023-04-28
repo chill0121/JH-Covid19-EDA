@@ -56,10 +56,10 @@ library(viridis)
 library(forecast)
 
 # Import dataset
-us_cases <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv")
-us_deaths <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv")
-global_cases <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
-global_deaths <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv")
+us_cases <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv", fill = TRUE)
+us_deaths <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv", fill = TRUE)
+global_cases <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv", fill = TRUE)
+global_deaths <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv", fill = TRUE)
 ```
 
 ## Initial Look at the Data
@@ -396,7 +396,7 @@ until the first Covid-19 vaccine was given in the US (December, 15, 2020).
 With this model fitted we will then forecast the death rate per day as if the vaccine was not developed, because
 our model will be trained on data without the vaccine's involvement.
 
-First we will mutate a dataframe to show deaths per day for the whole dataset, aka reality.
+First we will mutate a dataframe to show deaths per day for the whole dataset and plot it to give us something to compare our forecasting model to.
 ```{r Model - Reality}
 # Create a dataframe consolidating each date's data in the US
 time_series_us <- us_data %>%
@@ -425,7 +425,7 @@ pre_vaccine_us <- pre_vaccine_us %>%
 
 # Build model with frequency matching the seasonality
 data_ts <- ts(pre_vaccine_us, start = c(2020,1,22), frequency = 328)
-fit <- auto.arima(data_ts[, 2], seasonal = FALSE)
+fit <- auto.arima(data_ts[, 2])
 forecast_no_vaccine <- forecast(fit, 365*2)
 
 plot(forecast_no_vaccine, 
@@ -436,7 +436,7 @@ plot(forecast_no_vaccine,
 # Real data plotted on top
 par(new = TRUE)
 plot(time_series_us$Date, time_series_us$Deaths_Today, 
-    col = rgb(red = 0, blue = 1, green = 1, alpha = 0.3), 
+    col = rgb(red = 1, blue = 0, green = 1, alpha = 0.5), 
     type = 'l',
     lty = 1,
     ylim = c(-4000, 9000),
@@ -445,7 +445,40 @@ plot(time_series_us$Date, time_series_us$Deaths_Today,
     xaxt = 'n',
     yaxt = 'n')
 ```
-*Note the black line is the REAL data, and the blue/grey is the PREDICTED data.*
+
+*Note: The black line is the REAL data, and the blue/grey is the PREDICTED data.*
+*The yellow line is the REAL data overlaid to compare to the prediction region.*
 
 - We can see that it didn't capture the seasonality here but it still gives a great prediction cone.
-- Placeholder
+- The prediction forecasting shows deaths per day could rise to ~5000 by 2022 and ~6000 by 2023.
+- Interesting to see how flat deaths per day is from Spring of 2022 on towards present day, especially compared to this forecasting model.
+
+Problems with this model:
+- As was mentioned before our training data in this case is too short to capture proper seasonality to set the frequency hyperparameter.
+- It doesn't account for mutating Covid-19 strains (e.g. omicron and delta variants arouse in mid and late 2021).
+
+## Conclusion
+***
+
+This dataset presents a wealth of information that we've only scratched the surface of here. The efforts of the
+world to tackle this issue really come to the surface during this analysis.
+
+Some key takeaways that were noted from above:
+
+- Total number of cases did not necessarily correlate heavily towards total number of deaths (or deaths per capita). This likely points towards differences in country's access to healthcare, vaccines, or Covid-19 response.
+- Some countries did not report Covid-19 statistics to the same effort as most of the world (e.g. North Korea)
+- Yemen, Sudan, Syria, Somalia, and Peru (and many, many others) saw a large ratio of deaths per case.
+- In the US many large metropolitan areas/counties ranked low in deaths per 100,000 people, when comparing all US counties.
+- Covid cases had a seasonality to, spiking in the cooler months.
+- The vaccines effectively tamped down deaths but took ~1 year from their release to show up in the data consistently (though there was a slight dip in the summer of 2021 compared to 2020).
+
+## Bias Acknowledgment
+***
+
+I was intentional during this analysis to ensure I stepped through this dataset with an empirical lense and be unbiased as possible. However,
+it must be stated that from the beginning of the pandemic and until recently, I worked in several major metropolitan hospitals, which goes without
+saying I had a unique perspective into the Covid-19 pandemic and how the public handled it. I may not be able to pinpoint how this may have affected my analysis
+here, but it undoubtedly did. Hopefully I've mitigated those effects and presented valid inferences.
+
+There is also certainly a large amount of bias from within this dataset itself by way of the hundreds of different sources it took to compile this data - from different US counties, states, and countries
+all of which having different reporting standards, diagnosis metrics, and political motivations that may have skewed their Covid-19 reporting.
