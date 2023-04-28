@@ -16,3 +16,7 @@ This .Rmd file will be written to be able to be knitted by the user using knitr 
 - forecast
 
 Please use install.packages('...') to install any you may have missing.
+
+If you have trouble knitting due to issues installing these packages you can view the knitted version by:
+
+From the repository >> JH_Covid19_EDA.html >> Download(view raw) >> Right click anywhere >> Save As... >> Open
