@@ -8,4 +8,11 @@ https://github.com/CSSEGISandData/COVID-19
 
 This .Rmd file will be written to be able to be knitted by the user using knitr and will use the following R libraries:
 
-[PLACEHOLDER FOR LIBRARIES]
+- tidyverse
+- lubridate
+- ggplot2
+- usmap
+- viridis
+- forecast
+
+Please use install.packages('...') to install any you may have missing.
