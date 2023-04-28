@@ -25,17 +25,27 @@ R Packages used:
 
 Please use install.packages('...') to install any you may have missing.
 
+If you have trouble knitting due to issues installing these packages you can view the knitted version by:
+
+From the repository >> JH_Covid19_EDA.html >> Download(view raw) >> Right click anywhere >> Save As... >> Open
+
+*For more technical information about the environment was run on, see the bottom for `sessionInfo()`.*
+
 ### Data Source Information
 
 **"COVID-19 Data Repository by the Center for Systems Science and Engineering (CSSE) at Johns Hopkins University"**
 
-This data was procured from <https://github.com/CSSEGISandData/COVID-19> which is a github repository where Johns Hopkins compiled covid-19 data. This repository stopped updating on 3/10/23.
-In this report we are specifically looking at the `./csse_covid_19_data/csse_covid_19_time_series` data.
+This data was procured from <https://github.com/CSSEGISandData/COVID-19> where Johns Hopkins has generously compiled covid-19 data. 
+
+- This repository stopped updating on 3/10/23.
+- In this report we are specifically looking at the `./csse_covid_19_data/csse_covid_19_time_series` data.
 
 I encourage all who reads this report to go read the `readme.md` file in the source's repository to gain more insights about where this data was collected, how it was validated, and compiled into this dataset.
-In short, the US data was collected from individual state and county Departments of Health and the global data was collected from various government bodies within each country (with a few exceptions).
+In short, the US data was collected from individual state and county Departments of Health and the global data was collected from various government bodies within each country, with a few exceptions.
 
-*This data set is licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) by the Johns Hopkins University on behalf of its Center for Systems Science in Engineering. Copyright Johns Hopkins University 2020.*
+*This data set is licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) by the Johns Hopkins University on behalf of its Center for Systems Science in Engineering.*
+
+*Copyright Johns Hopkins University 2020.*
 
 #### Feature Descriptions from Source
 
@@ -51,9 +61,8 @@ In short, the US data was collected from individual state and county Departments
 
 ### Environment Setup
 
-First we will import the libraries in R that are needed.
-
-Then, we will import the data using a URL directly from the source, this means it will update anytime we reknit.
+**First we will import the libraries in R that are needed.**
+**We will also import the data using a URL directly from the source repository, this means it will update along with any updates to the repository anytime we reknit.**
 
 ```{r Setup RMD}
 # Output all commands run and set a standard plot size
@@ -76,7 +85,7 @@ global_deaths <- read.csv("https://github.com/CSSEGISandData/COVID-19/raw/master
 ## Initial Look at the Data
 ***
 
-Let's look at the data in its raw form to decide what to do with it.
+**Let's check the dimensions of the imported data and output the first few rows in their raw form to decide what needs to be done.**
 
 ```{r First Look}
 dim(us_cases)
@@ -88,33 +97,35 @@ head(us_deaths[1:14])
 head(global_deaths[1:6])
 ```
 
-*I'm slicing the output so we don't see the date columns as they will fill the screen.*
-Here we can see each date is in an individual column **(feature)**, also `us_deaths` has an extra feature named `Population`.
+*Slicing the output here so we don't see all 1100 date columns.*
 
-Also, interesting to see reporting started on January, 22, 2020.
+- Here we can see each date is in an individual column (feature).
+- `us_deaths` has an extra `Population` feature. We'll deal with that when we merge the two tables.
+- The dataset starts reporting Covid-19 information on January, 22, 2020.
+- The global and US datasets span the same dates but neither global sets include population.
 
 ## Cleaning and Transformation Stage
 ***
 
-To clean up these datasets we will do the following,
+**To clean up these datasets we will do the following:**
 
 US Data:
 
-- Pivot the date columns into rows
-- Merge the cases and deaths datasets, keeping population
+- Pivot the date columns into rows.
+- Merge the cases and deaths datasets, keeping population.
 
 Global Data:
 
-- Pivot the date columns into rows
-- Merge the cases and death datasets
-- Import population data for each country and add a population column
+- Pivot the date columns into rows.
+- Merge the cases and death datasets.
+- Import population data for each country and add a population column.
 
-Also in both datasets,
+Also, in both datasets:
 
-- Remove redundant features and several that we won't be using
-- Rename a few features for consistency and readability
-- Transform feature class types for easier analysis
-- Check for duplicates and missing entries, NA, Null etc.
+- Remove redundant features as well as several that we won't be using (e.g. `iso2`, `iso3`, `code3`, `Combined_key`).
+- Rename a few features for consistency and readability.
+- Transform feature class types for easier analysis.
+- Check for duplicates and missing entries, NA, Null etc..
 
 ### Cleaning US Datasets
 
@@ -162,11 +173,11 @@ us_data <- us_data %>%
 head(us_data)
 ```
 
-This will be much easier to work with.
+Pivoting the dates and merging cases and death data into one dataset will make analysis much easier.
 
-### Cleaning US Datasets
+### Cleaning Global Datasets
 
-Now let's do a similar procedure with the global data.
+**Now let's do a similar procedure with the global data, keeping all shared features consistent.**
 
 ```{r Cleaning Global Data}
 # Global_deaths transformations
@@ -201,7 +212,8 @@ global_data <- global_data %>%
 head(global_data)
 ```
 
-Now because we might be interested in making some per capita comparisons in the future, let's import population data and add it to each country in `global_data`.
+**Now because we will be interested in making some per capita comparisons in the future, let's import population data and add it to each country in `global_data`.**
+**This data was also in the Johns Hopkins repository in a separate lookup table we will import here.**
 
 ```{r Import Population to Global}
 # Import Table with Populations
@@ -217,33 +229,34 @@ global_data <- global_data %>%
         mutate(across(where(is.character), as.factor))
 ```
 
-Finally, we should take a look at a summary of our two datasets and see if we can make any high level conclusions.
+**Finally, we should take a look at a summary of our two datasets and see if we can make any high level conclusions.**
 
 ```{r Summary}
 summary(us_data)
 summary(global_data)
 ```
 
-Even with just this we can determine several things:
+Even with just the initial cleaning and transformations we can see that:
 
 - This data goes from 2020/01/22 to 2023/03/09
-- The distribution of cases is heavily right-skewed (positively skewed) which makes sense considering there are more countries with low populations when compared to large countries pushing the mean towards the right. Also, it's a cumulative sum.
-- This dataset tracks a high granularity of countries, given the minimum population is 67.
+- The distribution of cases is heavily right-skewed (positively skewed) which makes sense since now we can see cases and deaths are recorded as a cumulative sum.
+- This dataset is fairly robust, tracking a high granularity of countries, given the minimum population is 67.
 
-Looks like there are a few issues here as well:
+Looks like there are a few possible issues here as well:
 
 - In the US data the minimum of `Cases` and `Deaths` is showing a negative value
 - In the global data there are NAs in `Lat` and `Long`
 - In the global data there are NAs in `Population`
 
-We can look at these in order.
+**Here we will investigate these issues in order.**
 ```{r Negative Cases and Deaths}
 filter(us_data, Cases < 0 | Deaths < 0)
 ```
 
 Looks to be all from the same 3 entries. Not a significant amount of data, easiest to just drop the rows in this case.
-Also, since cases and deaths are cumulative sums (rolling total) we aren't missing much if we do drop them (i.e. we will likely pick up whatever these were intended to be in the next valid entry).
+Also, since cases and deaths are cumulative sums (rolling total), we aren't missing much if we do drop them (i.e. we will likely pick up the intended totals in the next valid entry).
 
+**Let's drop these 3 rows.**
 ```{r Drop Negatives}
 # Before
 dim(us_data)
@@ -255,21 +268,24 @@ dim(us_data)
 
 We can see here that we've successfully removed the 3 bad entries.
 
-Now for the coordinate data NAs.
+**Now for the coordinate data NAs in the global data.**
 ```{r Lat and Long NAs}
 lat_na = (filter(global_data, global_data$Lat == is.na(Lat)))
 unique(lat_na$Province_State)
 ```
 
 Interesting, this dataset includes the cruise ships that were quarantined for Covid-19 outbreaks. 
-It makes sense there there isn't coordinate data to go along with these entries. We will leave them alone.
+It makes sense there there isn't coordinate data to go along with these entries. We will leave them alone and be mindful of these NA entries when we use coordinate data.
 
-Now for the population data NAs.
+**Now for the population data NAs.**
 ```{r, Population NAs 1, results = 'hide'}
 # Find index of NAs
 which(is.na(global_data$Population))
 ```
 *Output hidden here because it's too long.*
+
+There's a here so we will check a few to see why these were labeled as NA.
+
 ```{r Population NAs 2}
 # Display a few NA examples
 global_data[5716,]
@@ -277,23 +293,24 @@ global_data[326898,]
 global_data[121222,]
 ```
 
-This also looks fine, Antarctica and the 2022 Winter Olympics are certainly interesting entries but won't necessarily have a population associated.
+This also looks fine, Antarctica and the 2022 Winter Olympics are certainly interesting entries, and won't necessarily have a population associated.
 We will leave these as well and just be mindful of these entries when we do our analysis.
 
 ## Visualizations
 ***
 
-With the cleaning and transformation of the data complete, let's begin plotting some of these to get
+With the cleaning and transformation of the data complete, let's begin plotting some feature relationships to get
 a better sense of the data and hopefully tease out some conclusions.
 
 ### Global Data
 
-First I think it'd be useful to plot the cases and deaths per capita (100,000) per country, scaling our data to population size which normalizes comparisons between countries.
+**First I think it'd be useful to plot the cases and deaths per capita (100,000) per country, scaling our data to population size which will normalize comparisons between countries.**
 
-We'll only display the top 50 since there are 201 `Countries_Regions`.
+We'll only display the top 50 since there are 201 `Country_Regions`.
 ```{r Cases and Deaths Per Capita}
 # Group by Country, and max population (since cases and deaths are cumulative we don't sum)
 # Note na.rm = TRUE because otherwise R will throw a max of NA if one is in the set
+options(dplyr.summarise.inform = FALSE)
 country_totals <- global_data %>%
     group_by(Country_Region) %>%
     summarize(Cases = max(Cases, na.rm = TRUE),
@@ -312,6 +329,7 @@ country_pc_cases$Country_Region <- fct_inorder(country_pc_cases$Country_Region)
 country_pc_deaths <- arrange(country_totals, desc(country_totals$Deaths_Per_100k))
 country_pc_deaths$Country_Region <- fct_inorder(country_pc_deaths$Country_Region)
 
+# Plot top 50 cases then deaths per 100k
 country_pc_cases_plot <- country_pc_cases[1:50, ] %>%
    ggplot(., aes(x = Country_Region, y = Cases_Per_100k, fill = Country_Region)) + 
    geom_bar(stat = 'identity', show.legend = FALSE) +
@@ -333,17 +351,17 @@ country_pc_deaths_plot
 ```
 
 As you can see there is a significant difference between which countries rank high in total number of cases versus total number of deaths.
-This could be because of a number of reasons; 1: Access to healthcare, 2: Vaccine roll-out differences, 3: Covid-19 reporting differences, and so on.
+This could be because of a number of reasons; *1:* Access to healthcare, *2:* Vaccine roll-out differences, *3:* Covid-19 reporting differences, and so on.
 
-For instance:
+For instance from these graphs we can see:
 
-- Peru leads the mortality rate but is not in the top 50 of number cases. That tells us that Peruvians who got Covid-19 had a higher probability of succumbing to the disease. *(Note: we are not claiming a cause here.)*
-- Austria while number 2 in total cases is low in deaths in this top 50 list.
-- San Marino, while a small country, reports ~ 2/3 of their population in total number of cases.
-- Iceland and South Korea both place high in number of total cases but don't top 50 in deaths.
+- Peru leads the mortality rate but is not in the top 50 of number cases. That tells us that Peruvians who got Covid-19 had a higher probability of succumbing to the disease when compared to other countries.
+- Austria while number 2 in total cases is fairly low in deaths in this top 50 list.
+- San Marino, while a very small country, reports ~ 2/3 of their population in total number of cases.
+- Iceland and South Korea both place high in number of total cases but don't show up in the top 50 in deaths per 100,000.
 
-This leads me to wonder what the distribution of countries might look like if we graph $Total Deaths / Total Cases$. This would give us the ratio of people who
-died per case, giving us an interesting perspective about how each country/region responded to Covid-19.
+**This leads me to wonder what the distribution of countries might look like if we graph Total Deaths / Total Cases. This would give us the ratio of people who**
+**died per case, giving us an interesting perspective about how each country/region responded to Covid-19.**
 
 ```{r Deaths per Case Ratio}
 country_deaths_per_case <- arrange(country_totals, desc(country_totals$Deaths_Per_Case))
@@ -368,20 +386,21 @@ country_deaths_per_case_plot
 ```
 *Note: North Korea was changed to fit in this graph for easier viewing of the remaining data. N.Korea = 6.0*
 
-- According to this data you have a 600% chance of dying if you caught Covid-19 in North Korea. Looking into this further we see they reported 6 deaths and 1 case, obviously not a reliable source for North Korea Covid-19 data.
-- MS Zaandam was a cruise ship with unfortunate timing undocking in March 2020 where 9 cases would develop resulting in 2 deaths.
+- According to this data you have a 600% chance of dying if you caught Covid-19 in North Korea. Clearly this is impossible and looking into this further we see they reported 6 deaths and 1 case, obviously this is not a reliable source for North Korea Covid-19 data.
+- MS Zaandam was a cruise ship with unfortunate timing undocking in March 2020 making news headlines when 9 cases developed resulting in 2 deaths.
 - Yemen had a very high mortality rate.
-- Further on we see Peru near the top which confirms our previous hypothesis when looking at total number of deaths, they struggled with Covid-19.
+- Sudan and Syria both had above average mortality rates.
+- Further on we see Peru near the top which confirms our previous hypothesis when looking at total number of deaths graph.
 
 ### US Data
 
-Let's utilize the location data to graph our data on a map of the US.
+Let's utilize the location data to graph on a map of the US.
 
-Specifically I'd like to see the deaths per 100,000 organized by county.
+**Specifically I'd like to see the deaths per 100,000 organized by county.**
 ```{r US Map}
 options(dplyr.summarise.inform = FALSE)
 us_counties_totals <- us_data %>%
-    group_by(fips, County) %>%
+    group_by(fips, County, Province_State) %>%
     summarize(Cases = max(Cases, na.rm = TRUE),
         Deaths = max(Deaths, na.rm = TRUE),
         Population = max(Population, na.rm = TRUE),
@@ -396,18 +415,24 @@ plot_usmap(regions = 'counties', data = filter(us_counties_totals, County != '')
         caption = 'Source:<https://github.com/CSSEGISandData/COVID-19>')
 ```
 
-- With some exceptions it looks like more rural areas were prone to Covid-19 deaths when compared to more urban areas (e.g. no large cities in California rate high here, NYC, Chicago, etc).
+- With some exceptions it looks like more rural areas were prone to Covid-19 deaths when compared to more urban areas (e.g. no large cities are highlighted here - NYC, Chicago, nothing in California, etc).
+
+**We can see a large yellow county south of San Antonio, Texas let's investigate that. It should be one of the top listings so I will output the top five counties in deaths per 100,000**
+```{r Texas County}
+head(arrange(us_counties_totals, desc(Deaths_Per_100k)))
+```
+
+McMullen county has a small population for its size with 743 people, 186 total cases, and 10 deaths which is indeed a high proportion of deaths per capita so this makes sense.
 
 ## Modelling Pre-Vaccine Data
 ***
 
-Here I think it would be interesting to develop a model on the date from the beginning of Covid reporting (January, 22, 2020)
+From here I think it would be interesting to develop a model trained on data from the beginning of Covid reporting (January, 22, 2020)
 until the first Covid-19 vaccine was given in the US (December, 15, 2020).
 
-With this model fitted we will then forecast the death rate per day as if the vaccine was not developed, because
-our model will be trained on data without the vaccine's involvement.
+With this model trained and fitted with data pre-vaccine we will then forecast the death rate per day as if the vaccine was not developed.
 
-First we will mutate a dataframe to show deaths per day for the whole dataset and plot it to give us something to compare our forecasting model to.
+First we will create a new feature to show deaths per day for the whole dataset (reversing the cumulative sum) and plot it to give us something to compare our forecasting model to.
 ```{r Model - Reality}
 # Create a dataframe consolidating each date's data in the US
 time_series_us <- us_data %>%
@@ -422,8 +447,11 @@ ggplot(time_series_us) +
     geom_line(aes(x = Date, y = Deaths_Today), color = 'darkblue')
 ```
 
-- You can really see how the vaccine reduced the mortality rate, though it took awhile for it to take hold (vaccine hold-outs, issues distributing), especially winter 2023 you no longer see a spike.
+- The mortality rate trended down summer of 2021, possibly because of the vaccine.
+- There is a large spike in 2021 too early for it to be related to winter, but maybe from the spread of new Covid-19 variants.
+- The 2021-2022 winter spike is lower than 2020-2021's, but still present. Perhaps this is because there was still a decent portion of the population that were unvaccinated.
 - There is a high amount of seasonality frequency to this data.
+- 2023 breaks all trends and stays fairly low and stable.
 - The seasonality will be difficult to model because the vaccine came out so quickly meaning we only see a portion of the seasonality (less than 1 year) occur pre-vaccine and thus the data our model to train on will be sparse in this sense.
 
 **Let's begin building the model and train it only on data from January, 22, 2020 to December, 15, 2020.**
@@ -437,6 +465,7 @@ pre_vaccine_us <- pre_vaccine_us %>%
 # Build model with frequency matching the seasonality
 data_ts <- ts(pre_vaccine_us, start = c(2020,1,22), frequency = 328)
 fit <- auto.arima(data_ts[, 2])
+# Predict 2 years into the future from 2020-12-15
 forecast_no_vaccine <- forecast(fit, 365*2)
 
 plot(forecast_no_vaccine, 
@@ -444,7 +473,8 @@ plot(forecast_no_vaccine,
     ylab = 'Deaths per Day', 
     main = 'Deaths per Day Forecast', 
     sub = 'ARIMA(2,1,2) Model')
-# Real data plotted on top
+
+# Plot the acutal data on top of the forecast model
 par(new = TRUE)
 plot(time_series_us$Date, time_series_us$Deaths_Today, 
     col = rgb(red = 1, blue = 0, green = 1, alpha = 0.5), 
@@ -458,21 +488,22 @@ plot(time_series_us$Date, time_series_us$Deaths_Today,
 ```
 
 *Note: The black line is the REAL data, and the blue/grey is the PREDICTED data.*
-*The yellow line is the REAL data overlaid to compare to the prediction region.*
+*The second yellow line is the REAL data overlaid to compare to the prediction region.*
 
-- We can see that it didn't capture the seasonality here but it still gives a great prediction cone.
-- The prediction forecasting shows deaths per day could rise to ~5000 by 2022 and ~6000 by 2023.
-- Interesting to see how flat deaths per day is from Spring of 2022 on towards present day, especially compared to this forecasting model.
+- We can see that it didn't capture the seasonality well but it still gives a great prediction cone that rises much further than reality.
+- The prediction forecasting shows deaths per day could have risen to ~5000 by 2022 and ~6000 by 2023.
+- Interesting to see how flat deaths per day is from Spring of 2022 on towards present day, especially compared to this forecasting model's alternate world.
 
-Problems with this model:
-- As was mentioned before our training data in this case is too short to capture proper seasonality to set the frequency hyperparameter.
+Potential problems with this model:
+- As was mentioned before the training data in this case is too short to capture proper seasonality to set the frequency hyperparameter. Aggregating from days to weeks might help a little but would only serve to smooth the daily reporting noise.
 - It doesn't account for mutating Covid-19 strains (e.g. omicron and delta variants arouse in mid and late 2021).
+- Arguably you could extend the training set to cut off when a certain percentage of the population received the vaccine or maybe the 2nd dose. As rollout in December of 2020 was strictly healthcare workers, immunosuppressed, and the elderly its effects were not seen for quite some time when more doses were available.
 
 ## Conclusion
 ***
 
-This dataset presents a wealth of information that we've only scratched the surface of here. The efforts of the
-world to tackle this issue really come to the surface during this analysis.
+This dataset presents a wealth of information that we've only scratched the surface of here. The strife, efforts, and successes of the
+world to tackle this issue really come to the surface during analysis of this data.
 
 Some key takeaways that were noted from above:
 
@@ -480,16 +511,24 @@ Some key takeaways that were noted from above:
 - Some countries did not report Covid-19 statistics to the same effort as most of the world (e.g. North Korea)
 - Yemen, Sudan, Syria, Somalia, and Peru (and many, many others) saw a large ratio of deaths per case.
 - In the US many large metropolitan areas/counties ranked low in deaths per 100,000 people, when comparing all US counties.
-- Covid cases had a seasonality to, spiking in the cooler months.
-- The vaccines effectively tamped down deaths but took ~1 year from their release to show up in the data consistently (though there was a slight dip in the summer of 2021 compared to 2020).
+- Perhaps as expected, Covid cases had a seasonal frequency to them, spiking in the cooler months.
+- The vaccines effectively tamped down deaths but took ~1 year from their release to show up in the data consistently (though there was a noticeable dip in the summer of 2021 compared to the summer of 2020).
 
 ## Bias Acknowledgment
 ***
 
-I was intentional during this analysis to ensure I stepped through this dataset with an empirical lense and be unbiased as possible. However,
+During this analysis I was intentional with my decisions to ensure I stepped through this dataset with an unbiased lense. However,
 it must be stated that from the beginning of the pandemic and until recently, I worked in several major metropolitan hospitals, which
-gave me a unique perspective into the Covid-19 pandemic and how the public handled it. I may not be able to pinpoint how this may have affected my analysis
-here, but it undoubtedly did. Hopefully I've mitigated those effects and presented valid inferences.
+gave me a unique perspective into the Covid-19 pandemic and how the public handled it. Another bias I possess is that I've been relatively
+healthy my whole life. I may not be able to pinpoint how this may have affected my analysis here, but it undoubtedly did. 
+Hopefully I've mitigated those effects and presented valid inferences.
 
-There is also certainly a large amount of bias from within this dataset itself by way of the hundreds of different sources it took to compile this data - from different US counties, states, and countries
-all of which having different reporting standards, diagnosis metrics, and political motivations that may have skewed their Covid-19 reporting.
+In my opinion there is also certainly a large amount of bias from within this dataset itself by way of the hundreds of different sources it took to compile 
+this data - sources coming from different countries, US states, and counties all of which having different reporting standards, diagnosis metrics, and 
+political motivations that may have skewed their Covid-19 reporting.
+
+## Technical Info
+
+```{r Session Info}
+sessionInfo()
+```
