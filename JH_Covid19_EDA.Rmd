@@ -29,6 +29,8 @@ If you have trouble knitting due to issues installing these packages you can vie
 
 From the repository >> JH_Covid19_EDA.html >> Download(view raw) >> Right click anywhere >> Save As... >> Open
 
+Repository Link: <https://github.com/chill0121/JH-Covid19-EDA>
+
 *For more technical information about the environment was run on, see the bottom for `sessionInfo()`.*
 
 ### Data Source Information
